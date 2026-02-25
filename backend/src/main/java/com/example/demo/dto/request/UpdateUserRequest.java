@@ -1,50 +1,37 @@
 package com.example.demo.dto.request;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonAlias;
+import jakarta.validation.constraints.*;
+import lombok.*;
 
-/**
- * Request DTO để cập nhật user
- * 
- * Endpoint: PUT /api/admin/users/{id}
- */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class UpdateUserRequest {
-    
+
     @Size(max = 100, message = "Họ tên tối đa 100 ký tự")
+    @JsonAlias({ "hoTen", "fullName" })
     private String hoTen;
-    
-    @Email(message = "Email không đúng định dạng")
+
+    @Email(message = "Email không hợp lệ")
+    @JsonAlias({ "email" })
     private String email;
-    
+
     @Size(max = 15, message = "Số điện thoại tối đa 15 ký tự")
+    @JsonAlias({ "soDienThoai", "phone" })
     private String soDienThoai;
-    
-    /**
-     * Mật khẩu mới (null = không đổi)
-     */
+
     @Size(min = 6, message = "Mật khẩu ít nhất 6 ký tự")
+    @JsonAlias({ "password" })
     private String password;
-    
-    /**
-     * ID của role
-     */
+
+    @JsonAlias({ "roleId" })
     private Integer roleId;
-    
-    /**
-     * ID của quầy
-     */
+
+    @JsonAlias({ "quayId", "counterId" })
     private Integer quayId;
-    
-    /**
-     * Trạng thái tài khoản
-     */
+
+    @JsonAlias({ "trangThai", "isActive" })
     private Boolean trangThai;
 }

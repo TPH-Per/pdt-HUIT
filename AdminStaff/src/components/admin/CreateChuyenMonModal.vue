@@ -14,7 +14,7 @@
       >
         <!-- Header -->
         <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <h3 class="text-lg font-semibold text-gray-900">Thêm chuyên môn mới</h3>
+          <h3 class="text-lg font-semibold text-gray-900">Thêm danh mục mới</h3>
           <button 
             @click="$emit('close')"
             class="p-1 text-gray-400 hover:text-gray-600 transition-colors"
@@ -25,34 +25,19 @@
 
         <!-- Form -->
         <form @submit.prevent="handleSubmit" class="px-6 py-4 space-y-4">
-          <!-- Mã chuyên môn -->
+          <!-- Tên danh mục -->
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">
-              Mã chuyên môn <span class="text-red-500">*</span>
+              Tên danh mục <span class="text-red-500">*</span>
             </label>
             <input
-              v-model="form.maChuyenMon"
+              v-model="form.name"
               type="text"
-              placeholder="VD: CM01, DT-HT"
+              placeholder="VD: Học vụ, Đào tạo"
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-              :class="{ 'border-red-500': errors.maChuyenMon }"
+              :class="{ 'border-red-500': errors.name }"
             />
-            <p v-if="errors.maChuyenMon" class="mt-1 text-sm text-red-500">{{ errors.maChuyenMon }}</p>
-          </div>
-
-          <!-- Tên chuyên môn -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">
-              Tên chuyên môn <span class="text-red-500">*</span>
-            </label>
-            <input
-              v-model="form.tenChuyenMon"
-              type="text"
-              placeholder="VD: Dân số - Hộ tịch"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-              :class="{ 'border-red-500': errors.tenChuyenMon }"
-            />
-            <p v-if="errors.tenChuyenMon" class="mt-1 text-sm text-red-500">{{ errors.tenChuyenMon }}</p>
+            <p v-if="errors.name" class="mt-1 text-sm text-red-500">{{ errors.name }}</p>
           </div>
 
           <!-- Mô tả -->
@@ -61,9 +46,9 @@
               Mô tả
             </label>
             <textarea
-              v-model="form.moTa"
+              v-model="form.description"
               rows="3"
-              placeholder="Mô tả về chuyên môn (tùy chọn)"
+              placeholder="Mô tả về danh mục (tùy chọn)"
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
             ></textarea>
           </div>
@@ -89,7 +74,7 @@
             class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <Loader2 v-if="submitting" :size="18" class="animate-spin" />
-            {{ submitting ? 'Đang tạo...' : 'Tạo chuyên môn' }}
+            {{ submitting ? 'Đang tạo...' : 'Tạo danh mục' }}
           </button>
         </div>
       </div>
@@ -100,12 +85,12 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue';
 import { X, Loader2 } from 'lucide-vue-next';
-import { chuyenMonApi, type ChuyenMonData } from '@/services/api';
+import { serviceCategoryApi, type ServiceCategoryData } from '@/services/api';
 
 // Emits
 const emit = defineEmits<{
   close: [];
-  created: [chuyenMon: ChuyenMonData];
+  created: [chuyenMon: ServiceCategoryData];
 }>();
 
 // State
@@ -113,34 +98,24 @@ const submitting = ref(false);
 const submitError = ref<string | null>(null);
 
 const form = reactive({
-  maChuyenMon: '',
-  tenChuyenMon: '',
-  moTa: '',
+  name: '',
+  description: '',
 });
 
 const errors = reactive({
-  maChuyenMon: '',
-  tenChuyenMon: '',
+  name: '',
 });
 
 // Methods
 function validate(): boolean {
-  let isValid = true;
-  
-  errors.maChuyenMon = '';
-  errors.tenChuyenMon = '';
+  errors.name = '';
 
-  if (!form.maChuyenMon.trim()) {
-    errors.maChuyenMon = 'Vui lòng nhập mã chuyên môn';
-    isValid = false;
+  if (!form.name.trim()) {
+    errors.name = 'Vui lòng nhập tên danh mục';
+    return false;
   }
 
-  if (!form.tenChuyenMon.trim()) {
-    errors.tenChuyenMon = 'Vui lòng nhập tên chuyên môn';
-    isValid = false;
-  }
-
-  return isValid;
+  return true;
 }
 
 async function handleSubmit() {
@@ -150,10 +125,9 @@ async function handleSubmit() {
   submitError.value = null;
 
   try {
-    const response = await chuyenMonApi.create({
-      maChuyenMon: form.maChuyenMon.trim(),
-      tenChuyenMon: form.tenChuyenMon.trim(),
-      moTa: form.moTa.trim() || undefined,
+    const response = await serviceCategoryApi.create({
+      name: form.name.trim(),
+      description: form.description.trim() || undefined,
     });
 
     if (response.data.success) {

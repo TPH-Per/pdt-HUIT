@@ -47,6 +47,11 @@ public enum ErrorCode {
     APPOINTMENT_ALREADY_CANCELLED("APPT_002", "Lịch hẹn đã bị hủy", HttpStatus.BAD_REQUEST),
     APPOINTMENT_ALREADY_COMPLETED("APPT_003", "Lịch hẹn đã hoàn thành", HttpStatus.BAD_REQUEST),
     
+    // ==================== PROCEDURE ERRORS (6xxx) ====================
+    LOAITHUTUC_NOT_FOUND("PROC_001", "Không tìm thấy loại thủ tục", HttpStatus.NOT_FOUND),
+    LOAITHUTUC_ALREADY_EXISTS("PROC_002", "Mã thủ tục đã tồn tại", HttpStatus.CONFLICT),
+    CHUYENMON_NOT_FOUND("PROC_003", "Không tìm thấy chuyên môn", HttpStatus.NOT_FOUND),
+
     // ==================== SYSTEM ERRORS (9xxx) ====================
     INTERNAL_ERROR("SYS_001", "Lỗi hệ thống, vui lòng thử lại sau", HttpStatus.INTERNAL_SERVER_ERROR),
     DATABASE_ERROR("SYS_002", "Lỗi kết nối cơ sở dữ liệu", HttpStatus.INTERNAL_SERVER_ERROR),

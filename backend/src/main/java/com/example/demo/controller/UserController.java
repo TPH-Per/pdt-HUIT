@@ -1,141 +1,191 @@
 package com.example.demo.controller;
 
-import com.example.demo.dto.ApiResponse;
 import com.example.demo.dto.request.CreateUserRequest;
 import com.example.demo.dto.request.UpdateUserRequest;
+import com.example.demo.dto.response.ApiResponse;
 import com.example.demo.dto.response.UserResponse;
-import com.example.demo.service.UserService;
+import com.example.demo.entity.ServiceDesk;
+import com.example.demo.entity.Role;
+import com.example.demo.entity.Registrar;
+import com.example.demo.repository.ServiceDeskRepository;
+import com.example.demo.repository.RoleRepository;
+import com.example.demo.repository.RegistrarRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
- * Controller quản lý Users (Admin only)
- * 
- * Base path: /api/admin/users
- * 
- * Tất cả endpoints đều yêu cầu role Admin
+ * Controller quản lý tài khoản cán bộ đào tạo (Admin)
  */
 @RestController
 @RequestMapping("/api/admin/users")
 @RequiredArgsConstructor
 @Slf4j
 @PreAuthorize("hasRole('Admin')")
+@Transactional
 public class UserController {
-    
-    private final UserService userService;
-    
-    /**
-     * Lấy danh sách tất cả users
-     * 
-     * GET /api/admin/users
-     */
+
+    private final RegistrarRepository registrarRepository;
+    private final RoleRepository roleRepository;
+    private final ServiceDeskRepository serviceDeskRepository;
+    private final PasswordEncoder passwordEncoder;
+
     @GetMapping
     public ResponseEntity<ApiResponse<List<UserResponse>>> getAllUsers() {
-        List<UserResponse> users = userService.getAllUsers();
-        return ResponseEntity.ok(
-            ApiResponse.success(users, "Lấy danh sách users thành công")
-        );
+        log.info("Getting all users");
+        List<UserResponse> users = registrarRepository.findAll().stream()
+                .map(this::mapToUserResponse)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(ApiResponse.success(users));
     }
-    
-    /**
-     * Lấy user theo ID
-     * 
-     * GET /api/admin/users/{id}
-     */
+
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<UserResponse>> getUserById(@PathVariable Integer id) {
-        UserResponse user = userService.getUserById(id);
-        return ResponseEntity.ok(
-            ApiResponse.success(user, "Lấy thông tin user thành công")
-        );
+        Registrar registrar = registrarRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy cán bộ với ID: " + id));
+        return ResponseEntity.ok(ApiResponse.success(mapToUserResponse(registrar)));
     }
-    
-    /**
-     * Tạo user mới
-     * 
-     * POST /api/admin/users
-     */
+
     @PostMapping
-    public ResponseEntity<ApiResponse<UserResponse>> createUser(
-            @Valid @RequestBody CreateUserRequest request) {
-        
-        log.info("Admin tạo user mới: {}", request.getMaNhanVien());
-        UserResponse user = userService.createUser(request);
-        
-        return ResponseEntity.status(HttpStatus.CREATED).body(
-            ApiResponse.success(user, "Tạo user thành công")
-        );
+    public ResponseEntity<ApiResponse<UserResponse>> createUser(@Valid @RequestBody CreateUserRequest request) {
+        log.info("Creating user: {}", request.getMaNhanVien());
+
+        if (registrarRepository.existsByRegistrarCode(request.getMaNhanVien())) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error("DUPLICATE_CODE", "Mã cán bộ đã tồn tại: " + request.getMaNhanVien()));
+        }
+
+        if (request.getEmail() != null && registrarRepository.existsByEmail(request.getEmail())) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error("DUPLICATE_EMAIL", "Email đã tồn tại: " + request.getEmail()));
+        }
+
+        Role role = roleRepository.findById(request.getRoleId())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy vai trò với ID: " + request.getRoleId()));
+
+        ServiceDesk serviceDesk = null;
+        if (request.getQuayId() != null) {
+            serviceDesk = serviceDeskRepository.findById(request.getQuayId())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy quầy với ID: " + request.getQuayId()));
+        }
+
+        Registrar registrar = Registrar.builder()
+                .registrarCode(request.getMaNhanVien())
+                .fullName(request.getHoTen())
+                .email(request.getEmail())
+                .phone(request.getSoDienThoai())
+                .passwordHash(passwordEncoder.encode(request.getPassword()))
+                .role(role)
+                .serviceDesk(serviceDesk)
+                .isActive(true)
+                .build();
+
+        registrar = registrarRepository.save(registrar);
+        log.info("User created: {}", registrar.getRegistrarCode());
+
+        return ResponseEntity.ok(ApiResponse.success(mapToUserResponse(registrar), "Tạo tài khoản thành công"));
     }
-    
-    /**
-     * Cập nhật user
-     * 
-     * PUT /api/admin/users/{id}
-     */
+
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<UserResponse>> updateUser(
             @PathVariable Integer id,
-            @Valid @RequestBody UpdateUserRequest request) {
-        
-        log.info("Admin cập nhật user ID: {}", id);
-        UserResponse user = userService.updateUser(id, request);
-        
-        return ResponseEntity.ok(
-            ApiResponse.success(user, "Cập nhật user thành công")
-        );
+            @RequestBody UpdateUserRequest request) {
+
+        Registrar registrar = registrarRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy cán bộ với ID: " + id));
+
+        log.info("Updating user: {}", registrar.getRegistrarCode());
+
+        if (request.getHoTen() != null)
+            registrar.setFullName(request.getHoTen());
+        if (request.getEmail() != null) {
+            if (!request.getEmail().equals(registrar.getEmail())
+                    && registrarRepository.existsByEmail(request.getEmail())) {
+                return ResponseEntity.badRequest()
+                        .body(ApiResponse.error("DUPLICATE_EMAIL", "Email đã tồn tại"));
+            }
+            registrar.setEmail(request.getEmail());
+        }
+        if (request.getSoDienThoai() != null)
+            registrar.setPhone(request.getSoDienThoai());
+        if (request.getRoleId() != null) {
+            Role role = roleRepository.findById(request.getRoleId())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy vai trò"));
+            registrar.setRole(role);
+        }
+        if (request.getQuayId() != null) {
+            ServiceDesk serviceDesk = serviceDeskRepository.findById(request.getQuayId())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy quầy"));
+            registrar.setServiceDesk(serviceDesk);
+        }
+        if (request.getTrangThai() != null)
+            registrar.setIsActive(request.getTrangThai());
+        if (request.getPassword() != null && !request.getPassword().isEmpty()) {
+            registrar.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+        }
+
+        registrar = registrarRepository.save(registrar);
+        log.info("User updated: {}", registrar.getRegistrarCode());
+
+        return ResponseEntity.ok(ApiResponse.success(mapToUserResponse(registrar), "Cập nhật thành công"));
     }
-    
-    /**
-     * Xóa user (soft delete)
-     * 
-     * DELETE /api/admin/users/{id}
-     */
+
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable Integer id) {
-        log.info("Admin xóa user ID: {}", id);
-        userService.deleteUser(id);
-        
-        return ResponseEntity.ok(
-            ApiResponse.success("Khóa user thành công")
-        );
+        Registrar registrar = registrarRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy cán bộ với ID: " + id));
+
+        log.info("Deleting (deactivating) user: {}", registrar.getRegistrarCode());
+        registrar.setIsActive(false);
+        registrarRepository.save(registrar);
+
+        return ResponseEntity.ok(ApiResponse.success(null, "Đã khóa tài khoản"));
     }
-    
-    /**
-     * Reset password cho user
-     * 
-     * POST /api/admin/users/{id}/reset-password
-     */
+
     @PostMapping("/{id}/reset-password")
     public ResponseEntity<ApiResponse<UserResponse>> resetPassword(
             @PathVariable Integer id,
-            @RequestBody ResetPasswordRequest request) {
-        
-        log.info("Admin reset password cho user ID: {}", id);
-        UpdateUserRequest updateRequest = UpdateUserRequest.builder()
-                .password(request.getNewPassword())
-                .build();
-        
-        UserResponse user = userService.updateUser(id, updateRequest);
-        
-        return ResponseEntity.ok(
-            ApiResponse.success(user, "Reset password thành công")
-        );
+            @RequestBody Map<String, String> request) {
+
+        String newPassword = request.get("newPassword");
+        if (newPassword == null || newPassword.length() < 6) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error("INVALID_PASSWORD", "Mật khẩu phải có ít nhất 6 ký tự"));
+        }
+
+        Registrar registrar = registrarRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy cán bộ với ID: " + id));
+
+        log.info("Resetting password for: {}", registrar.getRegistrarCode());
+        registrar.setPasswordHash(passwordEncoder.encode(newPassword));
+        registrarRepository.save(registrar);
+
+        return ResponseEntity.ok(ApiResponse.success(mapToUserResponse(registrar), "Đã đặt lại mật khẩu"));
     }
-    
-    /**
-     * Inner class cho reset password request
-     */
-    @lombok.Data
-    @lombok.NoArgsConstructor
-    @lombok.AllArgsConstructor
-    public static class ResetPasswordRequest {
-        private String newPassword;
+
+    private UserResponse mapToUserResponse(Registrar registrar) {
+        return UserResponse.builder()
+                .id(registrar.getId())
+                .maNhanVien(registrar.getRegistrarCode())
+                .hoTen(registrar.getFullName())
+                .email(registrar.getEmail())
+                .soDienThoai(registrar.getPhone())
+                .roleId(registrar.getRole() != null ? registrar.getRole().getId() : null)
+                .roleName(registrar.getRole() != null ? registrar.getRole().getRoleName() : null)
+                .roleDisplayName(registrar.getRole() != null ? registrar.getRole().getDisplayName() : null)
+                .quayId(registrar.getServiceDesk() != null ? registrar.getServiceDesk().getId() : null)
+                .tenQuay(registrar.getServiceDesk() != null ? registrar.getServiceDesk().getDeskName() : null)
+                .trangThai(registrar.getIsActive())
+                .ngayTao(registrar.getCreatedAt())
+                .build();
     }
 }

@@ -6,16 +6,16 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Response DTO cho đăng nhập thành công
+ * Response DTO for successful login
  * 
  * Endpoint: POST /api/auth/login
  * 
- * Ví dụ response:
+ * Example response:
  * {
- *   "token": "eyJhbGciOiJIUzI1NiJ9...",
- *   "tokenType": "Bearer",
- *   "expiresIn": 604800000,
- *   "user": { ... }
+ * "token": "eyJhbGciOiJIUzI1NiJ9...",
+ * "tokenType": "Bearer",
+ * "expiresIn": 604800000,
+ * "user": { ... }
  * }
  */
 @Data
@@ -23,25 +23,25 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class LoginResponse {
-    
+
     /**
      * JWT token
      */
     private String token;
-    
+
     /**
-     * Loại token (luôn là "Bearer")
+     * Token type (always "Bearer")
      */
     @Builder.Default
     private String tokenType = "Bearer";
-    
+
     /**
-     * Thời gian hết hạn (milliseconds)
+     * Expiration time (milliseconds)
      */
     private long expiresIn;
-    
+
     /**
-     * Thông tin user đã đăng nhập
+     * Logged in user info
      */
     private UserResponse user;
 }

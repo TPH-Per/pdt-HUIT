@@ -22,7 +22,7 @@ import router from '@/router';
  * Getters:
  * - isAuthenticated: Đã đăng nhập chưa
  * - isAdmin: Có phải Admin không
- * - isStaff: Có phải NhanVien không
+ * - isRegistrar: Có phải Cán bộ đào tạo không
  */
 export const useAuthStore = defineStore('auth', () => {
     // ==================== STATE ====================
@@ -67,9 +67,9 @@ export const useAuthStore = defineStore('auth', () => {
     const isAdmin = computed(() => user.value?.roleName === 'Admin');
 
     /**
-     * Có phải NhanVien (Staff) không?
+     * Có phải Cán bộ đào tạo (Registrar) không?
      */
-    const isStaff = computed(() => user.value?.roleName === 'NhanVien');
+    const isStaff = computed(() => user.value?.roleName === 'Registrar');
 
     /**
      * Tên hiển thị của user
@@ -120,7 +120,7 @@ export const useAuthStore = defineStore('auth', () => {
             if (err.response?.data?.message) {
                 error.value = err.response.data.message;
             } else if (err.response?.status === 401) {
-                error.value = 'Mã nhân viên hoặc mật khẩu không đúng';
+                error.value = 'Mã cán bộ hoặc mật khẩu không đúng';
             } else {
                 error.value = 'Lỗi kết nối server. Vui lòng thử lại.';
             }

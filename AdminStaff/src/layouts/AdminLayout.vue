@@ -1,19 +1,19 @@
 <template>
-  <div class="min-h-screen bg-gray-100 flex">
-    <!-- Sidebar - Dark Slate Theme for Admin -->
+  <div class="min-h-screen bg-[#F4F6F9] flex">
+    <!-- Sidebar - Dark HUIT Theme for Admin -->
     <aside class="w-72 bg-slate-900 text-white fixed h-full z-20 hidden md:flex flex-col shadow-xl">
       <!-- Logo Area -->
       <div class="p-6 pb-4">
         <div class="flex items-center gap-3 mb-6">
-          <div class="h-10 w-10 bg-white rounded-xl flex items-center justify-center text-slate-900 font-bold shadow-lg overflow-hidden p-1">
+          <div class="h-10 w-10 bg-white rounded-xl flex items-center justify-center shadow-lg overflow-hidden p-1">
             <img 
-              src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/Emblem_of_Vietnam.svg/2048px-Emblem_of_Vietnam.svg.png" 
-              alt="Logo" 
+              src="@/assets/image/huit_logo.webp" 
+              alt="Logo HUIT" 
               class="h-full w-full object-contain" 
             />
           </div>
           <div>
-            <h1 class="font-bold text-base uppercase tracking-wide">Phú Thọ</h1>
+            <h1 class="font-bold text-base uppercase tracking-wide">HUIT</h1>
             <p class="text-xs text-slate-400">Trang Quản Trị</p>
           </div>
         </div>
@@ -29,7 +29,7 @@
           class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group"
           :class="[
             $route.path === item.path 
-              ? 'bg-indigo-600 text-white shadow-md translate-x-1' 
+              ? 'bg-[#003865] text-white shadow-md translate-x-1' 
               : 'text-slate-400 hover:bg-white/5 hover:text-white hover:translate-x-1'
           ]"
         >
@@ -45,7 +45,7 @@
       <!-- User Profile -->
       <div class="p-4 border-t border-white/5 bg-slate-950">
         <div class="flex items-center gap-3 mb-4 bg-white/5 p-3 rounded-xl border border-white/5">
-          <div class="h-10 w-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold border-2 border-white/20 shadow-inner">
+          <div class="h-10 w-10 bg-gradient-to-br from-[#003865] to-[#0B4271] rounded-full flex items-center justify-center text-white font-bold border-2 border-white/20 shadow-inner">
             {{ adminInfo.avatar }}
           </div>
           <div class="flex-1 min-w-0">
@@ -58,14 +58,14 @@
             @click="showEditProfileModal = true"
             class="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/5 rounded-lg text-xs font-medium text-slate-400 hover:text-white transition-colors group"
           >
-            <UserCog class="h-4 w-4 group-hover:text-indigo-400 transition-colors" />
+            <UserCog class="h-4 w-4 group-hover:text-[#3374ab] transition-colors" />
             Sửa profile
           </button>
           <button
             @click="handleLogout"
             class="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/5 rounded-lg text-xs font-medium text-slate-400 hover:text-white transition-colors group"
           >
-            <LogOut class="h-4 w-4 group-hover:text-red-400 transition-colors" />
+            <LogOut class="h-4 w-4 group-hover:text-[#D31826] transition-colors" />
             Đăng xuất
           </button>
         </div>
@@ -75,28 +75,28 @@
     <!-- Main Content -->
     <div class="flex-1 md:ml-72 flex flex-col min-h-screen transition-all duration-300">
       <!-- Top Header -->
-      <header class="bg-white border-b border-gray-200 h-16 px-6 flex items-center justify-between sticky top-0 z-10 shadow-sm">
+      <header class="bg-white border-b border-[#DEE2E6] h-16 px-6 flex items-center justify-between sticky top-0 z-10 shadow-sm">
         <div class="flex items-center gap-4 flex-1">
           <div class="relative w-96 max-w-full">
-            <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#6C757D]" />
             <input 
               type="text" 
               placeholder="Tìm kiếm..."
-              class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+              class="w-full pl-10 pr-4 py-2 bg-[#F4F6F9] border border-[#DEE2E6] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#003865]/20 focus:border-[#003865] transition-all"
             />
           </div>
         </div>
 
         <div class="flex items-center gap-4">
-          <button class="relative p-2 text-gray-500 hover:bg-gray-100 rounded-full transition-colors">
+          <button class="relative p-2 text-[#6C757D] hover:bg-[#F4F6F9] rounded-full transition-colors">
             <Bell class="h-5 w-5" />
-            <span class="absolute top-1.5 right-1.5 h-2 w-2 bg-red-500 rounded-full border-2 border-white"></span>
+            <span class="absolute top-1.5 right-1.5 h-2 w-2 bg-[#D31826] rounded-full border-2 border-white"></span>
           </button>
         </div>
       </header>
 
       <!-- Page Content -->
-      <main class="flex-1 p-6 overflow-y-auto bg-gray-50/50">
+      <main class="flex-1 p-6 overflow-y-auto bg-[#F4F6F9]">
         <RouterView />
       </main>
     </div>
@@ -120,9 +120,10 @@ import {
   LogOut, 
   Search, 
   Bell, 
-  Settings,
   UserCog,
-  Layers
+  Layers,
+  ClipboardList,
+  GraduationCap
 } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
 import EditProfileModal from '@/components/shared/EditProfileModal.vue'
@@ -136,10 +137,12 @@ const showEditProfileModal = ref(false)
 const sidebarItems = [
   { icon: LayoutDashboard, label: 'Tổng quan', path: '/admin/dashboard' },
   { icon: Users, label: 'Quản lý tài khoản', path: '/admin/accounts' },
+  { icon: GraduationCap, label: 'Quản lý sinh viên', path: '/admin/students' },
   { icon: Building2, label: 'Quản lý quầy', path: '/admin/counters' },
-  { icon: Layers, label: 'Quản lý chuyên môn', path: '/admin/specialties' },
+  { icon: Layers, label: 'Quản lý danh mục DV', path: '/admin/specialties' },
+  { icon: ClipboardList, label: 'Quản lý dịch vụ', path: '/admin/procedures' },
   { icon: FileBarChart, label: 'Báo cáo & Góp ý', path: '/admin/reports' },
-  { icon: Settings, label: 'Cài đặt hệ thống', path: '/admin/settings' },
+  { icon: UserCog, label: 'Tài khoản cá nhân', path: '/admin/profile' },
 ]
 
 // Lấy thông tin user từ authStore (reactive)
@@ -149,24 +152,11 @@ const adminInfo = computed(() => ({
   avatar: authStore.user?.hoTen?.charAt(0).toUpperCase() || 'AD'
 }))
 
-/**
- * Handle logout
- * 
- * Flow:
- * 1. authStore.logout() xóa token/user khỏi store và localStorage
- * 2. authStore.logout() tự động redirect về /login
- */
 const handleLogout = async () => {
   await authStore.logout()
 }
 
-/**
- * Handle profile updated
- * Refresh user info in store from localStorage
- */
 const handleProfileUpdated = () => {
-  // User info đã được update trong localStorage bởi modal
-  // Refresh từ localStorage vào store
   const userJson = localStorage.getItem('user')
   if (userJson) {
     authStore.user = JSON.parse(userJson)

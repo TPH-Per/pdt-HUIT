@@ -1,0 +1,103 @@
+# =====================================================
+# PostgreSQL Configuration for 16GB RAM System
+# Intel Core i5 Gen 12
+# =====================================================
+# Copy this file to: C:\Program Files\PostgreSQL\{version}\data\postgresql.conf
+# Or merge these settings into your existing postgresql.conf
+# Restart PostgreSQL after changes: net stop postgresql-x64-{version} && net start postgresql-x64-{version}
+# =====================================================
+
+# -----------------------------------------------------
+# MEMORY SETTINGS
+# -----------------------------------------------------
+# shared_buffers: 25% of RAM
+shared_buffers = 4GB
+
+# effective_cache_size: 75% of RAM (includes OS cache)
+effective_cache_size = 12GB
+
+# work_mem: Memory per sort/hash operation (be careful with high connections)
+work_mem = 64MB
+
+# maintenance_work_mem: For VACUUM, CREATE INDEX, ALTER TABLE
+maintenance_work_mem = 512MB
+
+# wal_buffers: WAL buffer (typically 3% of shared_buffers, max 64MB)
+wal_buffers = 64MB
+
+# -----------------------------------------------------
+# CONNECTION SETTINGS
+# -----------------------------------------------------
+max_connections = 100
+superuser_reserved_connections = 3
+
+# -----------------------------------------------------
+# CHECKPOINT SETTINGS
+# -----------------------------------------------------
+checkpoint_completion_target = 0.9
+checkpoint_timeout = 10min
+max_wal_size = 2GB
+min_wal_size = 512MB
+
+# -----------------------------------------------------
+# QUERY PLANNER (For SSD)
+# -----------------------------------------------------
+random_page_cost = 1.1
+effective_io_concurrency = 200
+default_statistics_target = 100
+
+# -----------------------------------------------------
+# PARALLEL QUERY
+# Intel i5 Gen 12: 6P+4E cores = 10 total threads
+# -----------------------------------------------------
+max_parallel_workers_per_gather = 2
+max_parallel_workers = 4
+max_worker_processes = 8
+max_parallel_maintenance_workers = 2
+
+# -----------------------------------------------------
+# WRITE-AHEAD LOGGING
+# -----------------------------------------------------
+wal_level = replica
+archive_mode = off
+# For backup: archive_mode = on, archive_command = 'copy "%p" "C:\\Backups\\wal\\%f"'
+
+# -----------------------------------------------------
+# AUTOVACUUM TUNING
+# -----------------------------------------------------
+autovacuum = on
+autovacuum_max_workers = 3
+autovacuum_naptime = 1min
+autovacuum_vacuum_threshold = 50
+autovacuum_analyze_threshold = 50
+autovacuum_vacuum_scale_factor = 0.1
+autovacuum_analyze_scale_factor = 0.05
+
+# -----------------------------------------------------
+# LOGGING
+# -----------------------------------------------------
+logging_collector = on
+log_directory = 'log'
+log_filename = 'postgresql-%Y-%m-%d.log'
+log_rotation_age = 1d
+log_rotation_size = 100MB
+log_min_duration_statement = 1000
+log_checkpoints = on
+log_connections = on
+log_disconnections = on
+log_lock_waits = on
+log_temp_files = 0
+
+# -----------------------------------------------------
+# STATISTICS
+# -----------------------------------------------------
+track_activities = on
+track_counts = on
+track_io_timing = on
+track_functions = all
+
+# -----------------------------------------------------
+# CLIENT CONNECTION DEFAULTS
+# -----------------------------------------------------
+timezone = 'Asia/Ho_Chi_Minh'
+lc_messages = 'en_US.UTF-8'

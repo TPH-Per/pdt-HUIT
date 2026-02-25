@@ -1,50 +1,66 @@
 package com.example.demo.controller;
 
-import com.example.demo.dto.ApiResponse;
+import com.example.demo.dto.response.ApiResponse;
+import com.example.demo.dto.response.RoleResponse;
 import com.example.demo.entity.Role;
 import com.example.demo.repository.RoleRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
- * Controller lấy danh sách Roles (Admin only)
- * 
- * GET /api/admin/roles
+ * Role Management Controller cho Admin
  */
 @RestController
 @RequestMapping("/api/admin/roles")
 @RequiredArgsConstructor
+@Slf4j
 @PreAuthorize("hasRole('Admin')")
 public class RoleController {
-    
+
     private final RoleRepository roleRepository;
-    
+
+    /**
+     * Lấy danh sách tất cả roles
+     * GET /api/admin/roles
+     */
     @GetMapping
     public ResponseEntity<ApiResponse<List<RoleResponse>>> getAllRoles() {
+        log.info("Getting all roles");
+
         List<RoleResponse> roles = roleRepository.findAll().stream()
-                .map(role -> RoleResponse.builder()
-                        .id(role.getId())
-                        .roleName(role.getRoleName())
-                        .displayName(role.getDisplayName())
-                        .build())
-                .toList();
-        
-        return ResponseEntity.ok(
-            ApiResponse.success(roles, "Lấy danh sách roles thành công")
-        );
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(ApiResponse.success(roles));
     }
-    
-    @lombok.Data
-    @lombok.Builder
-    @lombok.NoArgsConstructor
-    @lombok.AllArgsConstructor
-    public static class RoleResponse {
-        private Integer id;
-        private String roleName;
-        private String displayName;
+
+    /**
+     * Lấy role theo ID
+     * GET /api/admin/roles/{id}
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<RoleResponse>> getRoleById(@PathVariable Integer id) {
+        Role role = roleRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy vai trò với ID: " + id));
+
+        return ResponseEntity.ok(ApiResponse.success(mapToResponse(role)));
+    }
+
+    /**
+     * Map Role entity to Response DTO
+     */
+    private RoleResponse mapToResponse(Role role) {
+        return RoleResponse.builder()
+                .id(role.getId())
+                .roleName(role.getRoleName())
+                .displayName(role.getDisplayName())
+                .description(role.getDescription())
+                .build();
     }
 }

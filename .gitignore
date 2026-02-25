@@ -35,3 +35,6 @@ target/
 # Temp files
 *.tmp
 *.temp
+
+# Project specific
+docs/

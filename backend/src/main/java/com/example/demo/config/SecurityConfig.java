@@ -29,15 +29,15 @@ import org.springframework.web.cors.CorsConfigurationSource;
  * - Cấu hình password encoder
  */
 @Configuration
-@EnableWebSecurity          // Bật Spring Security
-@EnableMethodSecurity       // Cho phép dùng @PreAuthorize trên method
+@EnableWebSecurity // Bật Spring Security
+@EnableMethodSecurity // Cho phép dùng @PreAuthorize trên method
 @RequiredArgsConstructor
 public class SecurityConfig {
-    
+
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final CustomUserDetailsService userDetailsService;
     private final CorsConfigurationSource corsConfigurationSource;
-    
+
     /**
      * Cấu hình Security Filter Chain
      * 
@@ -46,46 +46,45 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            // 1. Enable CORS
-            .cors(cors -> cors.configurationSource(corsConfigurationSource))
-            
-            // 2. Disable CSRF - không cần vì dùng JWT (stateless)
-            .csrf(AbstractHttpConfigurer::disable)
-            
-            // 3. Cấu hình authorization cho các URLs
-            .authorizeHttpRequests(auth -> auth
-                // URLs PUBLIC - không cần đăng nhập
-                .requestMatchers(
-                    "/api/auth/**",         // Login, register
-                    "/api/public/**",       // Public endpoints
-                    "/error",               // Error page
-                    "/actuator/health"      // Health check
-                ).permitAll()
-                
-                // URLs chỉ ADMIN mới được truy cập
-                .requestMatchers("/api/admin/**").hasRole("Admin")
-                
-                // URLs STAFF hoặc ADMIN đều được truy cập
-                .requestMatchers("/api/staff/**").hasAnyRole("Admin", "NhanVien")
-                
-                // Tất cả URLs còn lại phải đăng nhập
-                .anyRequest().authenticated()
-            )
-            
-            // 4. Session Management - STATELESS vì dùng JWT
-            .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
-            
-            // 5. Cấu hình Authentication Provider
-            .authenticationProvider(authenticationProvider())
-            
-            // 6. Thêm JWT Filter TRƯỚC UsernamePasswordAuthenticationFilter
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
-        
+                // 1. Enable CORS
+                .cors(cors -> cors.configurationSource(corsConfigurationSource))
+
+                // 2. Disable CSRF - không cần vì dùng JWT (stateless)
+                .csrf(AbstractHttpConfigurer::disable)
+
+                // 3. Cấu hình authorization cho các URLs
+                .authorizeHttpRequests(auth -> auth
+                        // URLs PUBLIC - không cần đăng nhập
+                        .requestMatchers(
+                                "/api/auth/**", // Login, register
+                                "/api/public/**", // Public endpoints
+                                "/api/student/**", // Student self-service APIs
+                                "/error", // Error page
+                                "/actuator/health" // Health check
+                        ).permitAll()
+
+                        // URLs chỉ ADMIN mới được truy cập
+                        .requestMatchers("/api/admin/**").hasRole("Admin")
+
+                        // URLs Cán bộ đào tạo hoặc ADMIN đều được truy cập
+                        .requestMatchers("/api/registrar/**").hasAnyRole("Admin", "Registrar")
+
+                        // Tất cả URLs còn lại phải đăng nhập
+                        .anyRequest().authenticated())
+
+                // 4. Session Management - STATELESS vì dùng JWT
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+                // 5. Cấu hình Authentication Provider
+                .authenticationProvider(authenticationProvider())
+
+                // 6. Thêm JWT Filter TRƯỚC UsernamePasswordAuthenticationFilter
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
     }
-    
+
     /**
      * Password Encoder - dùng BCrypt
      * 
@@ -98,7 +97,7 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-    
+
     /**
      * Authentication Provider
      * 
@@ -111,14 +110,14 @@ public class SecurityConfig {
         authProvider.setPasswordEncoder(passwordEncoder());
         return authProvider;
     }
-    
+
     /**
      * Authentication Manager
      * 
      * Bean này được AuthService inject để authenticate user
      */
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) 
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config)
             throws Exception {
         return config.getAuthenticationManager();
     }

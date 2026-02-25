@@ -31,13 +31,13 @@
               Mã quầy <span class="text-red-500">*</span>
             </label>
             <input
-              v-model="form.maQuay"
+              v-model="form.deskCode"
               type="text"
               placeholder="VD: Q1, Q2, Q3"
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-              :class="{ 'border-red-500': errors.maQuay }"
+              :class="{ 'border-red-500': errors.deskCode }"
             />
-            <p v-if="errors.maQuay" class="mt-1 text-sm text-red-500">{{ errors.maQuay }}</p>
+            <p v-if="errors.deskCode" class="mt-1 text-sm text-red-500">{{ errors.deskCode }}</p>
           </div>
 
           <!-- Tên quầy -->
@@ -46,61 +46,42 @@
               Tên quầy <span class="text-red-500">*</span>
             </label>
             <input
-              v-model="form.tenQuay"
+              v-model="form.deskName"
               type="text"
-              placeholder="VD: Quầy Dân số - Hộ tịch"
+              placeholder="VD: Quầy Học vụ"
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-              :class="{ 'border-red-500': errors.tenQuay }"
+              :class="{ 'border-red-500': errors.deskName }"
             />
-            <p v-if="errors.tenQuay" class="mt-1 text-sm text-red-500">{{ errors.tenQuay }}</p>
+            <p v-if="errors.deskName" class="mt-1 text-sm text-red-500">{{ errors.deskName }}</p>
           </div>
 
-          <!-- Prefix số & Chuyên môn -->
+          <!-- Danh mục & Vị trí -->
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">
-                Prefix số <span class="text-red-500">*</span>
+                Danh mục
               </label>
-              <input
-                v-model="form.prefixSo"
-                type="text"
-                placeholder="VD: A, B, C"
-                maxlength="5"
+              <select
+                v-model="form.categoryId"
                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                :class="{ 'border-red-500': errors.prefixSo }"
-              />
-              <p v-if="errors.prefixSo" class="mt-1 text-sm text-red-500">{{ errors.prefixSo }}</p>
-              <p class="mt-1 text-xs text-gray-400">Dùng cho số thứ tự (A001, B001...)</p>
+              >
+                <option :value="null">Không chọn</option>
+                <option v-for="cat in categories" :key="cat.id" :value="cat.id">
+                  {{ cat.name }}
+                </option>
+              </select>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">
-                Chuyên môn <span class="text-red-500">*</span>
+                Vị trí
               </label>
-              <select
-                v-model="form.chuyenMonId"
+              <input
+                v-model="form.location"
+                type="text"
+                placeholder="VD: Tầng 1, Phòng A"
                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                :class="{ 'border-red-500': errors.chuyenMonId }"
-              >
-                <option :value="null" disabled>Chọn chuyên môn</option>
-                <option v-for="cm in chuyenMons" :key="cm.id" :value="cm.id">
-                  {{ cm.tenChuyenMon }}
-                </option>
-              </select>
-              <p v-if="errors.chuyenMonId" class="mt-1 text-sm text-red-500">{{ errors.chuyenMonId }}</p>
+              />
             </div>
-          </div>
-
-          <!-- Vị trí -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">
-              Vị trí
-            </label>
-            <input
-              v-model="form.viTri"
-              type="text"
-              placeholder="VD: Tầng 1, Phòng A"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-            />
           </div>
 
           <!-- Ghi chú -->
@@ -109,7 +90,7 @@
               Ghi chú
             </label>
             <textarea
-              v-model="form.ghiChu"
+              v-model="form.notes"
               rows="2"
               placeholder="Ghi chú thêm (tùy chọn)"
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
@@ -148,61 +129,47 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue';
 import { X, Loader2 } from 'lucide-vue-next';
-import { quayApi, chuyenMonApi, type ChuyenMonData, type QuayData } from '@/services/api';
+import { serviceDeskApi, serviceCategoryApi, type ServiceCategoryData, type ServiceDeskData } from '@/services/api';
 
 // Emits
 const emit = defineEmits<{
   close: [];
-  created: [quay: QuayData];
+  created: [quay: ServiceDeskData];
 }>();
 
 // State
-const chuyenMons = ref<ChuyenMonData[]>([]);
+const categories = ref<ServiceCategoryData[]>([]);
 const submitting = ref(false);
 const submitError = ref<string | null>(null);
 
 const form = reactive({
-  maQuay: '',
-  tenQuay: '',
-  viTri: '',
-  prefixSo: '',
-  chuyenMonId: null as number | null,
-  ghiChu: '',
+  deskCode: '',
+  deskName: '',
+  location: '',
+  categoryId: null as number | null,
+  notes: '',
 });
 
 const errors = reactive({
-  maQuay: '',
-  tenQuay: '',
-  prefixSo: '',
-  chuyenMonId: '',
+  deskCode: '',
+  deskName: '',
 });
 
 // Methods
 function validate(): boolean {
   let isValid = true;
   
-  // Reset errors
   Object.keys(errors).forEach(key => {
     errors[key as keyof typeof errors] = '';
   });
 
-  if (!form.maQuay.trim()) {
-    errors.maQuay = 'Vui lòng nhập mã quầy';
+  if (!form.deskCode.trim()) {
+    errors.deskCode = 'Vui lòng nhập mã quầy';
     isValid = false;
   }
 
-  if (!form.tenQuay.trim()) {
-    errors.tenQuay = 'Vui lòng nhập tên quầy';
-    isValid = false;
-  }
-
-  if (!form.prefixSo.trim()) {
-    errors.prefixSo = 'Vui lòng nhập prefix số';
-    isValid = false;
-  }
-
-  if (!form.chuyenMonId) {
-    errors.chuyenMonId = 'Vui lòng chọn chuyên môn';
+  if (!form.deskName.trim()) {
+    errors.deskName = 'Vui lòng nhập tên quầy';
     isValid = false;
   }
 
@@ -216,13 +183,12 @@ async function handleSubmit() {
   submitError.value = null;
 
   try {
-    const response = await quayApi.create({
-      maQuay: form.maQuay.trim(),
-      tenQuay: form.tenQuay.trim(),
-      viTri: form.viTri.trim() || undefined,
-      prefixSo: form.prefixSo.trim(),
-      chuyenMonId: form.chuyenMonId!,
-      ghiChu: form.ghiChu.trim() || undefined,
+    const response = await serviceDeskApi.create({
+      deskCode: form.deskCode.trim(),
+      deskName: form.deskName.trim(),
+      location: form.location.trim() || undefined,
+      categoryId: form.categoryId ?? undefined,
+      notes: form.notes.trim() || undefined,
     });
 
     if (response.data.success) {
@@ -237,19 +203,19 @@ async function handleSubmit() {
   }
 }
 
-async function fetchChuyenMons() {
+async function fetchCategories() {
   try {
-    const response = await chuyenMonApi.getAll();
+    const response = await serviceCategoryApi.getAll();
     if (response.data.success) {
-      chuyenMons.value = response.data.data;
+      categories.value = response.data.data;
     }
   } catch (err) {
-    console.error('Failed to fetch chuyen mons:', err);
+    console.error('Failed to fetch categories:', err);
   }
 }
 
 // Lifecycle
 onMounted(() => {
-  fetchChuyenMons();
+  fetchCategories();
 });
 </script>

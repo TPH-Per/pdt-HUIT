@@ -1,7 +1,7 @@
 package com.example.demo.service;
 
-import com.example.demo.entity.User;
-import com.example.demo.repository.UserRepository;
+import com.example.demo.entity.Registrar;
+import com.example.demo.repository.RegistrarRepository;
 import com.example.demo.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,54 +12,39 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Service để load thông tin User từ database
- * 
- * UserDetailsService là interface của Spring Security, được gọi khi:
- * - User đăng nhập (để verify password)
- * - JWT token được validate (để load user info)
- * 
- * Spring Security sẽ tự động tìm và sử dụng bean này
+ * Service load thông tin cán bộ đào tạo cho Spring Security
  */
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class CustomUserDetailsService implements UserDetailsService {
-    
-    private final UserRepository userRepository;
-    
+
+    private final RegistrarRepository registrarRepository;
+
     @Override
     @Transactional(readOnly = true)
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        log.debug("Đang tìm user với mã nhân viên: {}", username);
-        
-        User user = userRepository.findByMaNhanVienWithRole(username)
+    public UserDetails loadUserByUsername(String registrarCode) throws UsernameNotFoundException {
+        log.debug("Loading user by registrar code: {}", registrarCode);
+
+        Registrar registrar = registrarRepository.findByRegistrarCode(registrarCode)
                 .orElseThrow(() -> {
-                    log.warn("Không tìm thấy user với mã nhân viên: {}", username);
-                    return new UsernameNotFoundException(
-                            "Không tìm thấy người dùng với mã nhân viên: " + username
-                    );
+                    log.error("Registrar not found: {}", registrarCode);
+                    return new UsernameNotFoundException("Không tìm thấy cán bộ: " + registrarCode);
                 });
-        
-        if (user.getTrangThai() == null || !user.getTrangThai()) {
-            log.warn("Tài khoản {} đã bị khóa", username);
-            throw new UsernameNotFoundException("Tài khoản đã bị khóa: " + username);
+
+        if (!registrar.getIsActive()) {
+            log.warn("Inactive registrar login attempt: {}", registrarCode);
+            throw new UsernameNotFoundException("Tài khoản đã bị khóa: " + registrarCode);
         }
-        
-        log.debug("Đã tìm thấy user: {} với role: {}", user.getHoTen(), user.getRole().getRoleName());
-        
-        return new CustomUserDetails(user);
+
+        log.debug("Registrar loaded successfully: {}", registrarCode);
+        return new CustomUserDetails(registrar);
     }
-    
+
     @Transactional(readOnly = true)
     public UserDetails loadUserById(Integer id) {
-        log.debug("Đang tìm user với ID: {}", id);
-        
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> {
-                    log.warn("Không tìm thấy user với ID: {}", id);
-                    return new UsernameNotFoundException("Không tìm thấy người dùng với ID: " + id);
-                });
-        
-        return new CustomUserDetails(user);
+        Registrar registrar = registrarRepository.findById(id)
+                .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy cán bộ với ID: " + id));
+        return new CustomUserDetails(registrar);
     }
 }

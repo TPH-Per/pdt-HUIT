@@ -142,7 +142,7 @@
               >
                 <option :value="null">-- Chưa phân quầy --</option>
                 <option v-for="quay in quays" :key="quay.id" :value="quay.id">
-                  {{ quay.tenQuay }}
+                  {{ quay.deskName }}
                 </option>
               </select>
             </div>
@@ -180,7 +180,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue';
 import { X, Loader2 } from 'lucide-vue-next';
-import { userApi, roleApi, quayApi, type RoleData, type QuayData, type UserData } from '@/services/api';
+import { userApi, roleApi, serviceDeskApi, type RoleData, type ServiceDeskData, type UserData } from '@/services/api';
 
 // Emits
 const emit = defineEmits<{
@@ -190,7 +190,7 @@ const emit = defineEmits<{
 
 // State
 const roles = ref<RoleData[]>([]);
-const quays = ref<QuayData[]>([]);
+const quays = ref<ServiceDeskData[]>([]);
 const submitting = ref(false);
 const submitError = ref<string | null>(null);
 
@@ -298,7 +298,7 @@ async function fetchDropdownData() {
   try {
     const [rolesRes, quaysRes] = await Promise.all([
       roleApi.getAll(),
-      quayApi.getAll(),
+      serviceDeskApi.getAll(),
     ]);
     
     if (rolesRes.data.success) {

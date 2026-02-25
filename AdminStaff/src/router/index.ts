@@ -16,6 +16,7 @@ const FileProcessing = () => import('@/views/staff/FileProcessing.vue')
 // Admin views
 const AdminDashboard = () => import('@/views/admin/Dashboard.vue')
 const AccountManagement = () => import('@/views/admin/AccountManagement.vue')
+const StudentManagement = () => import('@/views/admin/StudentManagement.vue')
 const CounterManagement = () => import('@/views/admin/CounterManagement.vue')
 const Reports = () => import('@/views/admin/Reports.vue')
 
@@ -57,10 +58,28 @@ const routes: RouteRecordRaw[] = [
                 meta: { title: 'Quản lý hàng chờ' }
             },
             {
+                path: 'hoso',
+                name: 'HoSoManagement',
+                component: () => import('@/views/staff/HoSoManagement.vue'),
+                meta: { title: 'Quản lý hồ sơ' }
+            },
+            {
                 path: 'documents',
                 name: 'FileProcessing',
                 component: FileProcessing,
                 meta: { title: 'Xử lý hồ sơ' }
+            },
+            {
+                path: 'feedbacks',
+                name: 'FeedbackManagement',
+                component: () => import('@/views/staff/FeedbackManagement.vue'),
+                meta: { title: 'Tiếp nhận phản ánh' }
+            },
+            {
+                path: 'profile',
+                name: 'StaffProfile',
+                component: () => import('@/views/shared/ProfilePage.vue'),
+                meta: { title: 'Tài khoản cá nhân' }
             }
         ]
     },
@@ -88,6 +107,12 @@ const routes: RouteRecordRaw[] = [
                 meta: { title: 'Quản lý tài khoản' }
             },
             {
+                path: 'students',
+                name: 'StudentManagement',
+                component: StudentManagement,
+                meta: { title: 'Quản lý sinh viên' }
+            },
+            {
                 path: 'counters',
                 name: 'CounterManagement',
                 component: CounterManagement,
@@ -100,10 +125,22 @@ const routes: RouteRecordRaw[] = [
                 meta: { title: 'Quản lý chuyên môn' }
             },
             {
+                path: 'procedures',
+                name: 'ProcedureManagement',
+                component: () => import('@/views/admin/ProcedureManagement.vue'),
+                meta: { title: 'Quản lý thủ tục' }
+            },
+            {
                 path: 'reports',
                 name: 'Reports',
                 component: Reports,
                 meta: { title: 'Báo cáo & Góp ý' }
+            },
+            {
+                path: 'profile',
+                name: 'AdminProfile',
+                component: () => import('@/views/shared/ProfilePage.vue'),
+                meta: { title: 'Tài khoản cá nhân' }
             }
         ]
     },
@@ -141,7 +178,7 @@ router.beforeEach(async (to, _from, next) => {
     // Set page title
     const title = to.meta.title as string
     if (title) {
-        document.title = `${title} - Hệ thống Một cửa`
+        document.title = `${title} - Phòng Đào tạo HUIT`
     }
 
     // ========== LOGIC KIỂM TRA ==========
@@ -181,7 +218,7 @@ router.beforeEach(async (to, _from, next) => {
         }
 
         // Staff chỉ được vào staff routes
-        if (requiredRole === 'staff' && userRole === 'nhanvien') {
+        if (requiredRole === 'staff' && userRole === 'registrar') {
             next()
             return
         }

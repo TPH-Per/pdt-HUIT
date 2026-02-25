@@ -184,7 +184,7 @@
                 >
                   <option :value="null">-- Chưa phân quầy --</option>
                   <option v-for="quay in quays" :key="quay.id" :value="quay.id">
-                    {{ quay.tenQuay }}
+                    {{ quay.deskName }}
                   </option>
                 </select>
               </div>
@@ -247,10 +247,10 @@ import {
   profileApi,
   userApi,
   roleApi,
-  quayApi,
+  serviceDeskApi,
   type UserData,
   type RoleData,
-  type QuayData
+  type ServiceDeskData
 } from '@/services/api';
 import { useAuthStore } from '@/stores/auth';
 
@@ -281,7 +281,7 @@ const isAdmin = computed(() => authStore.isAdmin);
 const loading = ref(true);
 const currentUser = ref<UserData | null>(null);
 const roles = ref<RoleData[]>([]);
-const quays = ref<QuayData[]>([]);
+const quays = ref<ServiceDeskData[]>([]);
 const submitting = ref(false);
 const submitError = ref<string | null>(null);
 const submitSuccess = ref<string | null>(null);
@@ -317,7 +317,7 @@ onMounted(async () => {
       // Load roles và quays cho Admin
       const [rolesRes, quaysRes] = await Promise.all([
         roleApi.getAll(),
-        quayApi.getAll()
+        serviceDeskApi.getAll()
       ]);
       roles.value = rolesRes.data.data;
       quays.value = quaysRes.data.data;

@@ -36,7 +36,7 @@
               Mã quầy
             </label>
             <input
-              :value="props.quay?.maQuay"
+              :value="props.quay?.deskCode"
               type="text"
               disabled
               class="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
@@ -50,60 +50,42 @@
               Tên quầy <span class="text-red-500">*</span>
             </label>
             <input
-              v-model="form.tenQuay"
+              v-model="form.deskName"
               type="text"
-              placeholder="VD: Quầy Dân số - Hộ tịch"
+              placeholder="VD: Quầy Học vụ"
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-              :class="{ 'border-red-500': errors.tenQuay }"
+              :class="{ 'border-red-500': errors.deskName }"
             />
-            <p v-if="errors.tenQuay" class="mt-1 text-sm text-red-500">{{ errors.tenQuay }}</p>
+            <p v-if="errors.deskName" class="mt-1 text-sm text-red-500">{{ errors.deskName }}</p>
           </div>
 
-          <!-- Prefix số & Chuyên môn -->
+          <!-- Danh mục & Vị trí -->
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">
-                Prefix số <span class="text-red-500">*</span>
+                Danh mục
               </label>
-              <input
-                v-model="form.prefixSo"
-                type="text"
-                placeholder="VD: A, B, C"
-                maxlength="5"
+              <select
+                v-model="form.categoryId"
                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                :class="{ 'border-red-500': errors.prefixSo }"
-              />
-              <p v-if="errors.prefixSo" class="mt-1 text-sm text-red-500">{{ errors.prefixSo }}</p>
+              >
+                <option :value="null">Không chọn</option>
+                <option v-for="cat in categories" :key="cat.id" :value="cat.id">
+                  {{ cat.name }}
+                </option>
+              </select>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">
-                Chuyên môn <span class="text-red-500">*</span>
+                Vị trí
               </label>
-              <select
-                v-model="form.chuyenMonId"
+              <input
+                v-model="form.location"
+                type="text"
+                placeholder="VD: Tầng 1, Phòng A"
                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                :class="{ 'border-red-500': errors.chuyenMonId }"
-              >
-                <option :value="null" disabled>Chọn chuyên môn</option>
-                <option v-for="cm in chuyenMons" :key="cm.id" :value="cm.id">
-                  {{ cm.tenChuyenMon }}
-                </option>
-              </select>
-              <p v-if="errors.chuyenMonId" class="mt-1 text-sm text-red-500">{{ errors.chuyenMonId }}</p>
+              />
             </div>
-          </div>
-
-          <!-- Vị trí -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">
-              Vị trí
-            </label>
-            <input
-              v-model="form.viTri"
-              type="text"
-              placeholder="VD: Tầng 1, Phòng A"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-            />
           </div>
 
           <!-- Ghi chú -->
@@ -112,7 +94,7 @@
               Ghi chú
             </label>
             <textarea
-              v-model="form.ghiChu"
+              v-model="form.notes"
               rows="2"
               placeholder="Ghi chú thêm (tùy chọn)"
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
@@ -124,13 +106,13 @@
             <label class="relative inline-flex items-center cursor-pointer">
               <input
                 type="checkbox"
-                v-model="form.trangThai"
+                v-model="form.isActive"
                 class="sr-only peer"
               />
               <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
             </label>
             <span class="text-sm font-medium text-gray-700">
-              {{ form.trangThai ? 'Quầy đang hoạt động' : 'Quầy đã khóa' }}
+              {{ form.isActive ? 'Quầy đang hoạt động' : 'Quầy đã khóa' }}
             </span>
           </div>
 
@@ -171,58 +153,54 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue';
 import { X, Loader2 } from 'lucide-vue-next';
-import { quayApi, chuyenMonApi, type ChuyenMonData, type QuayData } from '@/services/api';
+import { serviceDeskApi, serviceCategoryApi, type ServiceCategoryData, type ServiceDeskData } from '@/services/api';
 
 // Props
 const props = defineProps<{
-  quay: QuayData | null;
+  quay: ServiceDeskData | null;
 }>();
 
 // Emits
 const emit = defineEmits<{
   close: [];
-  updated: [quay: QuayData];
+  updated: [quay: ServiceDeskData];
 }>();
 
 // State
 const loading = ref(true);
-const chuyenMons = ref<ChuyenMonData[]>([]);
+const categories = ref<ServiceCategoryData[]>([]);
 const submitting = ref(false);
 const submitError = ref<string | null>(null);
 const submitSuccess = ref<string | null>(null);
 
 const form = reactive({
-  tenQuay: '',
-  viTri: '',
-  prefixSo: '',
-  chuyenMonId: null as number | null,
-  ghiChu: '',
-  trangThai: true,
+  deskName: '',
+  location: '',
+  categoryId: null as number | null,
+  notes: '',
+  isActive: true,
 });
 
 const errors = reactive({
-  tenQuay: '',
-  prefixSo: '',
-  chuyenMonId: '',
+  deskName: '',
 });
 
 // Lifecycle
 onMounted(async () => {
   try {
-    // Load chuyên môn
-    const cmResponse = await chuyenMonApi.getAll();
-    if (cmResponse.data.success) {
-      chuyenMons.value = cmResponse.data.data;
+    // Load categories
+    const catResponse = await serviceCategoryApi.getAll();
+    if (catResponse.data.success) {
+      categories.value = catResponse.data.data;
     }
 
-    // Populate form with current quay data
+    // Populate form with current desk data
     if (props.quay) {
-      form.tenQuay = props.quay.tenQuay || '';
-      form.viTri = props.quay.viTri || '';
-      form.prefixSo = props.quay.prefixSo || '';
-      form.chuyenMonId = props.quay.chuyenMonId || null;
-      form.ghiChu = props.quay.ghiChu || '';
-      form.trangThai = props.quay.trangThai;
+      form.deskName = props.quay.deskName || '';
+      form.location = props.quay.location || '';
+      form.categoryId = props.quay.categoryId || null;
+      form.notes = props.quay.notes || '';
+      form.isActive = props.quay.isActive;
     }
   } catch (err) {
     console.error('Error loading data:', err);
@@ -240,18 +218,8 @@ function validate(): boolean {
     errors[key as keyof typeof errors] = '';
   });
 
-  if (!form.tenQuay.trim()) {
-    errors.tenQuay = 'Vui lòng nhập tên quầy';
-    isValid = false;
-  }
-
-  if (!form.prefixSo.trim()) {
-    errors.prefixSo = 'Vui lòng nhập prefix số';
-    isValid = false;
-  }
-
-  if (!form.chuyenMonId) {
-    errors.chuyenMonId = 'Vui lòng chọn chuyên môn';
+  if (!form.deskName.trim()) {
+    errors.deskName = 'Vui lòng nhập tên quầy';
     isValid = false;
   }
 
@@ -266,13 +234,12 @@ async function handleSubmit() {
   submitSuccess.value = null;
 
   try {
-    const response = await quayApi.update(props.quay.id, {
-      tenQuay: form.tenQuay.trim(),
-      viTri: form.viTri.trim() || undefined,
-      prefixSo: form.prefixSo.trim(),
-      chuyenMonId: form.chuyenMonId!,
-      ghiChu: form.ghiChu.trim() || undefined,
-      trangThai: form.trangThai,
+    const response = await serviceDeskApi.update(props.quay.id, {
+      deskName: form.deskName.trim(),
+      location: form.location.trim() || undefined,
+      categoryId: form.categoryId ?? undefined,
+      notes: form.notes.trim() || undefined,
+      isActive: form.isActive,
     });
 
     if (response.data.success) {

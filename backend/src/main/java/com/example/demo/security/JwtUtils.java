@@ -24,7 +24,7 @@ import java.util.UUID;
 @Component
 @Slf4j
 public class JwtUtils {
-    
+
     /**
      * Secret key để ký và verify token
      * Đọc từ application.properties: jwt.secret
@@ -33,14 +33,14 @@ public class JwtUtils {
      */
     @Value("${jwt.secret}")
     private String jwtSecret;
-    
+
     /**
      * Thời gian token hết hạn (milliseconds)
      * Đọc từ application.properties: jwt.expiration
      */
     @Value("${jwt.expiration}")
     private long jwtExpiration;
-    
+
     /**
      * Tạo SecretKey từ chuỗi secret
      * 
@@ -48,59 +48,69 @@ public class JwtUtils {
      */
     private SecretKey getSigningKey() {
         byte[] keyBytes = Decoders.BASE64.decode(
-            java.util.Base64.getEncoder().encodeToString(jwtSecret.getBytes())
-        );
+                java.util.Base64.getEncoder().encodeToString(jwtSecret.getBytes()));
         return Keys.hmacShaKeyFor(keyBytes);
     }
-    
+
     /**
      * Tạo JWT token từ thông tin user
      * 
-     * @param userId ID của user trong database
+     * @param userId   ID của user trong database
      * @param username Mã nhân viên (dùng làm subject)
-     * @param role Tên role của user
+     * @param role     Tên role của user
      * @return JWT token string
      */
     public String generateToken(Integer userId, String username, String role) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtExpiration);
-        
+
         // Tạo JTI (JWT ID) - định danh duy nhất cho mỗi token
         // Dùng UUID để đảm bảo không trùng lặp trên toàn cầu
         String jti = UUID.randomUUID().toString();
-        
+
         return Jwts.builder()
-                .id(jti)                              // JTI: JWT ID - định danh duy nhất
-                .subject(username)                    // Subject: ai sở hữu token
-                .claim("userId", userId)              // Custom claim: user ID
-                .claim("role", role)                  // Custom claim: role name
-                .issuedAt(now)                        // Thời gian tạo
-                .expiration(expiryDate)               // Thời gian hết hạn
-                .signWith(getSigningKey())            // Ký bằng secret key
-                .compact();                           // Build thành string
+                .id(jti) // JTI: JWT ID - định danh duy nhất
+                .subject(username) // Subject: ai sở hữu token
+                .claim("userId", userId) // Custom claim: user ID
+                .claim("role", role) // Custom claim: role name
+                .issuedAt(now) // Thời gian tạo
+                .expiration(expiryDate) // Thời gian hết hạn
+                .signWith(getSigningKey()) // Ký bằng secret key
+                .compact(); // Build thành string
     }
-    
+
+    /**
+     * Generate token from Spring Security Authentication
+     */
+    public String generateToken(org.springframework.security.core.Authentication authentication) {
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        return generateToken(
+                userDetails.getId(),
+                userDetails.getUsername(),
+                userDetails.getRoleName());
+    }
+
     /**
      * Lấy username (subject) từ token
      */
     public String getUsernameFromToken(String token) {
         return getClaimsFromToken(token).getSubject();
     }
-    
+
     /**
      * Lấy user ID từ token
      */
     public Integer getUserIdFromToken(String token) {
         return getClaimsFromToken(token).get("userId", Integer.class);
     }
-    
+
     /**
      * Lấy role từ token
      */
     public String getRoleFromToken(String token) {
         return getClaimsFromToken(token).get("role", String.class);
     }
-    
+
     /**
      * Lấy JTI (JWT ID) từ token
      * 
@@ -112,7 +122,7 @@ public class JwtUtils {
     public String getJtiFromToken(String token) {
         return getClaimsFromToken(token).getId();
     }
-    
+
     /**
      * Kiểm tra token có hợp lệ không
      * 
@@ -124,9 +134,9 @@ public class JwtUtils {
     public boolean validateToken(String token) {
         try {
             Jwts.parser()
-                .verifyWith(getSigningKey())    // Verify chữ ký
-                .build()
-                .parseSignedClaims(token);      // Parse và validate
+                    .verifyWith(getSigningKey()) // Verify chữ ký
+                    .build()
+                    .parseSignedClaims(token); // Parse và validate
             return true;
         } catch (MalformedJwtException e) {
             log.error("Token không đúng định dạng: {}", e.getMessage());
@@ -141,7 +151,7 @@ public class JwtUtils {
         }
         return false;
     }
-    
+
     /**
      * Parse token và lấy Claims (payload)
      * 
@@ -159,7 +169,7 @@ public class JwtUtils {
                 .parseSignedClaims(token)
                 .getPayload();
     }
-    
+
     /**
      * Lấy thời gian hết hạn của token (milliseconds)
      */

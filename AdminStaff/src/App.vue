@@ -1,12 +1,8 @@
 <template>
   <RouterView />
+  <Toaster position="top-right" richColors />
 </template>
 
 <script setup lang="ts">
-// App.vue - Root component
-// The RouterView will render the matched component based on the current route
+import { Toaster } from 'vue-sonner'
 </script>
-
-<style scoped>
-/* App-level scoped styles if needed */
-</style>
