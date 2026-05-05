@@ -5,6 +5,7 @@ import com.huit.pdt.web.dto.ApiResponse;
 import com.huit.pdt.web.dto.LoginResponse;
 import com.huit.pdt.web.dto.UserResponse;
 import com.huit.pdt.domain.auth.dto.RefreshTokenRequest;
+import com.huit.pdt.domain.auth.dto.LogoutRequest;
 import com.huit.pdt.infrastructure.persistence.Registrar;
 import com.huit.pdt.infrastructure.persistence.RegistrarRepository;
 import com.huit.pdt.domain.auth.service.AuthService;
@@ -42,11 +43,15 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<ApiResponse<Map<String, String>>> logout(@RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<ApiResponse<Map<String, String>>> logout(
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
+            @RequestBody(required = false) LogoutRequest request) {
+        String accessToken = null;
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            String token = authHeader.substring(7);
-            authService.logout(token);
+            accessToken = authHeader.substring(7);
         }
+        String refreshToken = request != null ? request.refreshToken() : null;
+        authService.logout(accessToken, refreshToken);
         return ResponseEntity.ok(ApiResponse.success(Map.of("message", "Đăng xuất thành công"), "Đăng xuất thành công"));
     }
 

@@ -1,9 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
-import '../../core/app_state.dart';
 import '../../shared/widgets/huit_app_bar.dart';
 import '../../shared/widgets/huit_button.dart';
 import '../feedback/feedback_page.dart';
@@ -25,9 +23,8 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   void initState() {
     super.initState();
-    final state = context.read<AppState>();
-    _emailCtrl = TextEditingController(text: state.email);
-    _phoneCtrl = TextEditingController(text: state.phone);
+    _emailCtrl = TextEditingController(text: '');
+    _phoneCtrl = TextEditingController(text: '');
   }
 
   @override
@@ -41,10 +38,7 @@ class _ProfilePageState extends State<ProfilePage> {
     setState(() => _saving = true);
     try {
       if (!mounted) return;
-      await context.read<AppState>().updateProfile(
-            email: _emailCtrl.text.trim(),
-            phone: _phoneCtrl.text.trim(),
-          );
+      // TODO: Integrate with ProfileBloc
       if (!mounted) return;
       setState(() {
         _isEditing = false;
@@ -69,16 +63,11 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   void _cancel() {
-    final state = context.read<AppState>();
-    _emailCtrl.text = state.email;
-    _phoneCtrl.text = state.phone;
     setState(() => _isEditing = false);
   }
 
   @override
   Widget build(BuildContext context) {
-    final state = context.watch<AppState>();
-
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: HuitAppBar(
@@ -117,7 +106,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         onSave: _save,
                         onCancel: _cancel,
                       )
-                    : _ProfileInfo(state: state),
+                    : _ProfileInfo(),
               ),
             ),
             const SizedBox(height: 20),
@@ -131,19 +120,19 @@ class _ProfilePageState extends State<ProfilePage> {
                   _InfoItem(
                       icon: Icons.school_outlined,
                       label: 'Khoa',
-                      value: state.faculty),
+                      value: ''),
                   _InfoItem(
                       icon: Icons.class_outlined,
                       label: 'Lớp',
-                      value: state.studentClass),
+                      value: ''),
                   _InfoItem(
                       icon: Icons.email_outlined,
                       label: 'Email',
-                      value: state.email),
+                      value: _emailCtrl.text),
                   _InfoItem(
                       icon: Icons.phone_outlined,
                       label: 'Số điện thoại',
-                      value: state.phone),
+                      value: _phoneCtrl.text),
                 ],
               ),
             ),
@@ -191,7 +180,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 fullWidth: true,
                 variant: HuitButtonVariant.danger,
                 icon: Icons.logout_rounded,
-                onPressed: () => _confirmLogout(context, state),
+                onPressed: () => _confirmLogout(context),
               ),
             ),
             const SizedBox(height: 28),
@@ -208,7 +197,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  void _confirmLogout(BuildContext context, AppState state) {
+  void _confirmLogout(BuildContext context) {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -222,7 +211,7 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
           TextButton(
             onPressed: () {
-              state.logout();
+              // TODO: Integrate with AuthBloc for logout
               Navigator.of(context).pushAndRemoveUntil(
                 MaterialPageRoute(builder: (_) => const LoginPage()),
                 (_) => false,
@@ -240,8 +229,7 @@ class _ProfilePageState extends State<ProfilePage> {
 // ── Sub-Widgets ────────────────────────────────────────────
 
 class _ProfileInfo extends StatelessWidget {
-  const _ProfileInfo({required this.state});
-  final AppState state;
+  const _ProfileInfo();
 
   @override
   Widget build(BuildContext context) {
@@ -262,7 +250,7 @@ class _ProfileInfo extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         Text(
-          state.studentName,
+          'Student Name',
           style: const TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.w800,
@@ -283,7 +271,7 @@ class _ProfileInfo extends StatelessWidget {
               const Icon(Icons.badge_outlined, color: Colors.white70, size: 14),
               const SizedBox(width: 6),
               Text(
-                'MSSV: ${state.studentId}',
+                'MSSV: N/A',
                 style: AppTextStyles.label.copyWith(
                   color: Colors.white,
                   fontWeight: FontWeight.w700,

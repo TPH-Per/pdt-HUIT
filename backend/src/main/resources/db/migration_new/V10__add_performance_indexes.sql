@@ -1,10 +1,7 @@
--- flyway:noTransaction
--- V10: Add performance indexes for concurrent queue operations
-
-CREATE INDEX CONCURRENTLY idx_queue_current_number ON queue(current_number);
-CREATE INDEX CONCURRENTLY idx_queue_updated_at ON queue(updated_at DESC);
-CREATE INDEX CONCURRENTLY idx_student_full_name ON student(full_name);
-CREATE INDEX CONCURRENTLY idx_appointment_status_date ON appointment(status, appointment_date);
-CREATE INDEX CONCURRENTLY idx_request_phase_student ON request(current_phase, student_id);
-CREATE INDEX CONCURRENTLY idx_student_feedback_student_id ON student_feedback(student_id);
-CREATE INDEX CONCURRENTLY idx_registrar_desk_id ON registrar(desk_id);
+-- V10__performance_indexes.sql
+CREATE INDEX idx_request_student_phase ON request(student_id, current_phase, created_at DESC);
+CREATE INDEX idx_request_history_request ON request_history(request_id, created_at DESC);
+CREATE INDEX idx_appointment_registrar_date ON appointment(registrar_id, appointment_date, status);
+CREATE INDEX idx_student_feedback_student ON student_feedback(student_id, status, created_at DESC);
+CREATE INDEX idx_report_student ON report(student_id, status, created_at DESC);
+CREATE INDEX idx_reply_report ON reply(report_id, created_at ASC);

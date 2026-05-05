@@ -41,10 +41,13 @@ class ApiClient {
           originalRequest._retry = true
           const authStore = useAuthStore()
           
+          // Try to refresh token (implement this based on backend refresh endpoint)
           try {
-            await authStore.refreshToken()
-            if (authStore.token) {
-              originalRequest.headers.Authorization = `Bearer ${authStore.token}`
+            const response = await this.client.post('/registrar/auth/refresh', {})
+            if (response.data.data?.token) {
+              const newToken = response.data.data.token
+              authStore.token = newToken
+              originalRequest.headers.Authorization = `Bearer ${newToken}`
               return this.client(originalRequest)
             }
           } catch (refreshError) {
@@ -57,11 +60,10 @@ class ApiClient {
         const errorMessage = this.getErrorMessage(error)
         console.error('API Error:', errorMessage)
         
-        return Promise.reject({
-          message: errorMessage,
-          status: error.response?.status,
-          data: error.response?.data,
-        } as AxiosError)
+        const customError = new Error(errorMessage) as any
+        customError.status = error.response?.status
+        customError.data = error.response?.data
+        return Promise.reject(customError)
       }
     )
   }

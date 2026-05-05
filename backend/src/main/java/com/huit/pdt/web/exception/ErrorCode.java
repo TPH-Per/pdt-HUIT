@@ -26,11 +26,14 @@ public enum ErrorCode {
     TOKEN_EXPIRED("AUTH_004", "Token đã hết hạn", HttpStatus.UNAUTHORIZED),
     TOKEN_INVALID("AUTH_005", "Token không hợp lệ", HttpStatus.UNAUTHORIZED),
     ACCESS_DENIED("AUTH_006", "Không có quyền truy cập", HttpStatus.FORBIDDEN),
+    RATE_LIMITED("AUTH_007", "Quá nhiều yêu cầu, vui lòng thử lại sau", HttpStatus.TOO_MANY_REQUESTS),
     
     // ==================== USER ERRORS (2xxx) ====================
     USER_NOT_FOUND("USER_001", "Không tìm thấy người dùng", HttpStatus.NOT_FOUND),
     USER_ALREADY_EXISTS("USER_002", "Người dùng đã tồn tại", HttpStatus.CONFLICT),
     EMAIL_ALREADY_EXISTS("USER_003", "Email đã được sử dụng", HttpStatus.CONFLICT),
+    RESOURCE_NOT_FOUND("USER_004", "Không tìm thấy tài nguyên", HttpStatus.NOT_FOUND),
+    CONFLICT("USER_005", "Dữ liệu xung đột", HttpStatus.CONFLICT),
     
     // ==================== VALIDATION ERRORS (3xxx) ====================
     VALIDATION_ERROR("VALID_001", "Dữ liệu không hợp lệ", HttpStatus.BAD_REQUEST),

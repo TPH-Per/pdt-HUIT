@@ -41,6 +41,16 @@ public class LoginResponse {
     private long expiresIn;
 
     /**
+     * Refresh JWT token
+     */
+    private String refreshToken;
+
+    /**
+     * Refresh token expiration time (milliseconds)
+     */
+    private long refreshExpiresIn;
+
+    /**
      * Logged in user info
      */
     private UserResponse user;

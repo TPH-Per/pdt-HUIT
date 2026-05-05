@@ -1,52 +1,41 @@
 package com.huit.pdt.domain.auth.service;
 
-import com.huit.pdt.infrastructure.persistence.Registrar;
-import com.huit.pdt.infrastructure.persistence.RegistrarRepository;
-import com.huit.pdt.infrastructure.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Load registrar user details for Spring Security authentication
- * Registrars authenticate using their registrar code
- */
+import java.util.Map;
+
 @Service("registrarUserDetailsService")
 @RequiredArgsConstructor
-@Slf4j
 public class RegistrarUserDetailsService implements UserDetailsService {
-
-    private final RegistrarRepository registrarRepository;
+    private final NamedParameterJdbcTemplate jdbc;
 
     @Override
-    @Transactional(readOnly = true)
-    public UserDetails loadUserByUsername(String registrarCode) throws UsernameNotFoundException {
-        log.debug("Loading registrar by code: {}", registrarCode);
-
-        Registrar registrar = registrarRepository.findByRegistrarCode(registrarCode)
-                .orElseThrow(() -> {
-                    log.error("Registrar not found: {}", registrarCode);
-                    return new UsernameNotFoundException("Không tìm thấy cán bộ: " + registrarCode);
-                });
-
-        if (!registrar.getIsActive()) {
-            log.warn("Inactive registrar login attempt: {}", registrarCode);
-            throw new UsernameNotFoundException("Tài khoản đã bị khóa: " + registrarCode);
+    public UserDetails loadUserByUsername(String registrarCode) {
+        String sql = """
+            SELECT reg.registrar_code, reg.password_hash, reg.is_active,
+                   r.role_name
+            FROM registrar reg
+            JOIN role r ON r.id = reg.role_id
+            WHERE reg.registrar_code = :code
+            """;
+        try {
+            return jdbc.queryForObject(sql, Map.of("code", registrarCode), (rs, n) ->
+                User.builder()
+                    .username(rs.getString("registrar_code"))
+                    .password(rs.getString("password_hash"))
+                    .disabled(!rs.getBoolean("is_active"))
+                    .roles(rs.getString("role_name"))
+                    .build());
+        } catch (EmptyResultDataAccessException e) {
+            throw new UsernameNotFoundException("Registrar not found: " + registrarCode);
         }
-
-        log.debug("Registrar loaded successfully: {}", registrarCode);
-        return new CustomUserDetails(registrar);
-    }
-
-    @Transactional(readOnly = true)
-    public UserDetails loadUserById(Integer id) {
-        Registrar registrar = registrarRepository.findById(id)
-                .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy cán bộ với ID: " + id));
-        return new CustomUserDetails(registrar);
     }
 }
 

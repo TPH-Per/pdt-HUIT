@@ -10,7 +10,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
-@Repository
+@Repository("jdbcReportRepository")
 public class ReportRepository {
 
     private final NamedParameterJdbcTemplate jdbc;

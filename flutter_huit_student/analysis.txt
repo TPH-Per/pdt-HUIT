@@ -1,0 +1,13 @@
+Analyzing flutter_huit_student...                               
+
+   info - The imported package 'http' isn't a dependency of the importing package - lib\data\api_service.dart:2:8 - depend_on_referenced_packages
+   info - The imported package 'provider' isn't a dependency of the importing package - lib\features\appointments\my_appointments_page.dart:2:8 - depend_on_referenced_packages
+   info - The imported package 'provider' isn't a dependency of the importing package - lib\features\auth\login_page.dart:3:8 - depend_on_referenced_packages
+   info - The imported package 'provider' isn't a dependency of the importing package - lib\features\booking\booking_flow_page.dart:2:8 - depend_on_referenced_packages
+   info - The imported package 'provider' isn't a dependency of the importing package - lib\features\documents\my_documents_page.dart:2:8 - depend_on_referenced_packages
+   info - The imported package 'provider' isn't a dependency of the importing package - lib\features\feedback\feedback_page.dart:2:8 - depend_on_referenced_packages
+   info - The imported package 'provider' isn't a dependency of the importing package - lib\features\home\home_page.dart:2:8 - depend_on_referenced_packages
+   info - The imported package 'provider' isn't a dependency of the importing package - lib\features\queue\queue_tracking_page.dart:3:8 - depend_on_referenced_packages
+   info - The imported package 'provider' isn't a dependency of the importing package - lib\shared\layouts\main_layout.dart:2:8 - depend_on_referenced_packages
+
+9 issues found. (ran in 10.9s)

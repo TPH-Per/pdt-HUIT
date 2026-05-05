@@ -1,0 +1,5 @@
+-- V12__add_service_desk_columns.sql
+ALTER TABLE service_desk
+ADD COLUMN IF NOT EXISTS registrar_id INTEGER REFERENCES registrar(id) ON DELETE SET NULL,
+ADD COLUMN IF NOT EXISTS opened_at TIMESTAMPTZ,
+ADD COLUMN IF NOT EXISTS closed_at TIMESTAMPTZ;

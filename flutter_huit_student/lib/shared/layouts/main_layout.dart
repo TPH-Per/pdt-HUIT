@@ -1,11 +1,11 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/Provider.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/app_state.dart';
 import '../../features/home/home_page.dart';
 import '../../features/booking/booking_flow_page.dart';
 import '../../features/appointments/my_appointments_page.dart';
 import '../../features/profile/profile_page.dart';
-import 'package:provider/provider.dart';
-import '../../core/app_state.dart';
 
 class MainLayout extends StatelessWidget {
   const MainLayout({super.key});

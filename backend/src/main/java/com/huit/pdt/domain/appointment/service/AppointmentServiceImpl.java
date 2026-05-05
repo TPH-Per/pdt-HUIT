@@ -28,18 +28,55 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     public Optional<AppointmentDTO> createAppointment(CreateAppointmentRequest request) {
-        String checkSql = "SELECT COUNT(*) FROM appointment WHERE registrar_id = :registrarId AND appointment_date = :appointmentDate AND appointment_time = :appointmentTime AND status != 2 FOR UPDATE";
-        Integer count = jdbc.queryForObject(checkSql, Map.of("registrarId", request.registrarId(), "appointmentDate", request.appointmentDate(), "appointmentTime", request.appointmentTime()), Integer.class);
+        String sql = """
+                WITH lock_registrar AS (
+                    SELECT id
+                    FROM registrar
+                    WHERE id = :registrarId
+                    FOR UPDATE
+                ), inserted AS (
+                    INSERT INTO appointment (request_id, registrar_id, appointment_date, appointment_time, status)
+                    SELECT :requestId, :registrarId, :appointmentDate, :appointmentTime, :status
+                    FROM lock_registrar
+                    WHERE NOT EXISTS (
+                        SELECT 1
+                        FROM appointment
+                        WHERE registrar_id = :registrarId
+                          AND appointment_date = :appointmentDate
+                          AND appointment_time = :appointmentTime
+                          AND status != :cancelledStatus
+                    )
+                    RETURNING id, request_id, registrar_id, appointment_date, appointment_time, status, created_at
+                )
+                SELECT id, request_id, registrar_id, appointment_date, appointment_time, status, created_at
+                FROM inserted
+                """;
 
-        if (count != null && count > 0) {
-            log.warn("Slot already booked for registrar {} at {} {}", request.registrarId(), request.appointmentDate(), request.appointmentTime());
+        Map<String, Object> params = Map.of(
+                "requestId", request.requestId(),
+                "registrarId", request.registrarId(),
+                "appointmentDate", request.appointmentDate(),
+                "appointmentTime", request.appointmentTime(),
+                "status", Appointment.STATUS_SCHEDULED,
+                "cancelledStatus", Appointment.STATUS_CANCELLED);
+
+        List<AppointmentDTO> result = jdbc.query(sql, params, (rs, rowNum) -> new AppointmentDTO(
+                rs.getInt("id"),
+                rs.getObject("request_id", Integer.class),
+                rs.getObject("registrar_id", Integer.class),
+                rs.getObject("appointment_date", LocalDate.class),
+                rs.getObject("appointment_time", LocalTime.class),
+                rs.getInt("status"),
+                rs.getTimestamp("created_at").toLocalDateTime()));
+
+        if (result.isEmpty()) {
+            log.warn("Slot already booked for registrar {} at {} {}", request.registrarId(),
+                    request.appointmentDate(), request.appointmentTime());
             return Optional.empty();
         }
 
-        Appointment appointment = Appointment.builder().request(null).registrar(null).appointmentDate(request.appointmentDate()).appointmentTime(request.appointmentTime()).status(Appointment.STATUS_SCHEDULED).build();
-        Appointment saved = appointmentRepository.save(appointment);
-        log.info("Created appointment {}", saved.getId());
-        return Optional.of(mapToDTO(saved));
+        log.info("Created appointment {}", result.get(0).id());
+        return Optional.of(result.get(0));
     }
 
     @Override

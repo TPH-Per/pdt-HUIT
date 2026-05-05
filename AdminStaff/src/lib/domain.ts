@@ -1,24 +1,36 @@
-export enum REQUEST_PHASE {
-  SUBMITTED = 0,
-  QUEUE = 1,
-  PENDING = 2,
-  PROCESSING = 3,
-  COMPLETED = 4,
-  CANCELLED = 0,
-  SUPPLEMENT = 2,
-}
+// Request phase constants (matching backend INTEGER values)
+export const REQUEST_PHASE = {
+  CANCELLED: 0,
+  QUEUE: 1,
+  PENDING: 2,
+  PROCESSING: 3,
+  COMPLETED: 4,
+  SUPPLEMENT: 6,
+} as const
 
-export enum APPOINTMENT_STATUS {
-  SCHEDULED = 0,
-  COMPLETED = 1,
-  CANCELLED = 2,
-}
+export type RequestPhase = typeof REQUEST_PHASE[keyof typeof REQUEST_PHASE]
 
-export enum REPORT_TYPE {
-  ACADEMIC = 'ACADEMIC',
-  FINANCIAL = 'FINANCIAL',
-  PERSONAL = 'PERSONAL',
-  OTHER = 'OTHER',
+export const APPOINTMENT_STATUS = {
+  SCHEDULED: 0,
+  COMPLETED: 1,
+  CANCELLED: 2,
+} as const
+
+export type AppointmentStatus = typeof APPOINTMENT_STATUS[keyof typeof APPOINTMENT_STATUS]
+
+export const REPORT_TYPE = {
+  ACADEMIC: 'ACADEMIC',
+  FINANCIAL: 'FINANCIAL',
+  PERSONAL: 'PERSONAL',
+  OTHER: 'OTHER',
+} as const
+
+// Generic API response wrapper
+export interface ApiResponse<T> {
+  success: boolean
+  message: string
+  data: T
+  timestamp?: string
 }
 
 export interface Student {
@@ -38,7 +50,7 @@ export interface Request {
   requestCode: string
   studentId: string
   academicServiceId: number
-  currentPhase: REQUEST_PHASE
+  currentPhase: RequestPhase
   status: string
   createdAt: string
   updatedAt: string
@@ -50,7 +62,7 @@ export interface Appointment {
   registrarId: number
   appointmentDate: string
   appointmentTime: string
-  status: APPOINTMENT_STATUS
+  status: AppointmentStatus
   createdAt: string
 }
 

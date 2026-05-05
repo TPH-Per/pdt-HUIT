@@ -48,7 +48,11 @@ public class StudentAuthController {
                     .body(ApiResponse.error("INVALID_CREDENTIALS", "MSSV không tồn tại"));
         }
 
-        if (!passwordEncoder.matches(password, student.getPasswordHash())) {
+        log.debug("Student found: {}, hashType: {}, encoder: {}", mssv, student.getPasswordHash().substring(0, Math.min(10, student.getPasswordHash().length())), passwordEncoder.getClass().getName());
+        boolean passwordMatches = passwordEncoder.matches(password, student.getPasswordHash());
+        log.debug("Password matches: {}", passwordMatches);
+        
+        if (!passwordMatches) {
             return ResponseEntity.status(401)
                     .body(ApiResponse.error("INVALID_CREDENTIALS", "Mật khẩu không đúng"));
         }
