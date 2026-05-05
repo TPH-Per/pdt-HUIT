@@ -1,40 +1,68 @@
 # Dependencies
 node_modules/
 .pnpm-store/
+.mvn/
+.gradle/
 
 # Build output
 dist/
 build/
 target/
+*.tsbuildinfo
 
 # IDE
 .idea/
 .vscode/
 *.iml
+*.ipr
+*.iws
+.metadata
 
-# Environment
+# Environment and Secrets
 .env
 .env.local
 .env.*.local
+firebase-service-account.json
+*.pem
+*.key
 
 # Logs
 *.log
+*.log.*
+*.gz
 npm-debug.log*
-
-# OS
-.DS_Store
-Thumbs.db
+**/logs/
+**/*_log.txt
+**/build_log.txt
 
 # Java/Maven
 *.class
 *.jar
 *.war
 *.ear
-target/
 
-# Temp files
+# Temp and Analysis files
 *.tmp
 *.temp
+backend/*.json
+!backend/pom.xml
+!backend/compose.yaml
+!backend/flyway.conf
+**/*.txt
+**/*.sql
+!backend/src/main/resources/**/*.sql
+**/*.ps1
+**/*.sh
+**/*.bat
+!backend/mvnw
+!backend/mvnw.cmd
+
+# Scripts and Utilities (Local only)
+/GenHash.java
+/backend/HashTest.java
 
 # Project specific
 docs/
+PHASE_3_SUMMARY.md
+VALIDATION_REPORT.md
+PLAN.md
